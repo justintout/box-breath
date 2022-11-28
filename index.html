@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>box breathing</title>
+</head>
+
+<style>
+  :root {
+    --area-duration: 4s;
+    --color-in: slategray;
+    --color-out: rebeccapurple;
+    --area-active-opacity: 100%;
+    --area-inactive-opacity: 20%;
+    --run: running;
+  }
+
+  * {
+    margin: 0;
+  }
+
+  html {
+    height: 100%;
+  }
+
+  body {
+    height: 100vh;
+    background-size: 100% 300%;
+    background-image: linear-gradient(to bottom, var(--color-in), var(--color-out));
+    background-position-y: 100%;
+    animation: gradient calc(4 * var(--area-duration)) linear infinite forwards var(--run);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-areas:
+      ". in ."
+      "hold-out . hold-in"
+      ". out .";
+    justify-items: center;
+    align-items: center;
+  }
+
+  @keyframes gradient {
+    25% {
+      background-position-y: 0%;
+    }
+
+    50% {
+      background-position-y: 0%;
+    }
+
+    75% {
+      background-position-y: 100%;
+    }
+  }
+
+  .area {
+    color: #eee;
+    opacity: var(--area-inactive-opacity);
+    font-family: 'Tahoma';
+    text-transform: uppercase;
+  }
+
+  .area--in {
+    grid-area: in;
+    animation: label calc(4 * var(--area-duration)) 0s ease infinite var(--run);
+    align-self: end;
+  }
+
+  .area--hold-in {
+    grid-area: hold-in;
+    animation: label calc(4 * var(--area-duration)) var(--area-duration) ease infinite var(--run);
+    justify-self: start;
+  }
+
+  .area--out {
+    grid-area: out;
+    animation: label calc(4 * var(--area-duration)) calc(2 * var(--area-duration)) ease infinite var(--run);
+    align-self: start;
+  }
+
+  .area--hold-out {
+    grid-area: hold-out;
+    animation: label calc(4 * var(--area-duration)) calc(3 * var(--area-duration)) ease infinite var(--run);
+    justify-self: end;
+  }
+
+  @keyframes label {
+    0% {
+      opacity: var(--area-active-opacity);
+    }
+
+    24% {
+      opacity: var(--area-active-opacity);
+    }
+
+    25% {
+      opacity: var(--area-inactive-opacity);
+    }
+
+    100% {
+      opacity: var(--area-inactive-opacity);
+    }
+  }
+</style>
+
+<body>
+  <div class="area area--in">
+    <h1>in</h1>
+  </div>
+  <div class="area area--hold-in">
+    <h1>hold</h1>
+  </div>
+  <div class="area area--out">
+    <h1>out</h1>
+  </div>
+  <div class="area area--hold-out">
+    <h1>hold</h1>
+  </div>
+</body>
+
+</html>
