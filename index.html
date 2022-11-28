@@ -10,6 +10,7 @@
 
 <style>
   :root {
+    --text-color: #eee;
     --area-duration: 4s;
     --color-in: slategray;
     --color-out: rebeccapurple;
@@ -22,20 +23,28 @@
     margin: 0;
   }
 
+  a {
+      color: var(--text-color);
+  }
+
   html {
     height: 100%;
   }
 
   body {
+    box-shadow: inset 0 0 10vmin black;
     height: 100vh;
+    padding: 1ch;
+    overflow: hidden;
     background-size: 100% 300%;
     background-image: linear-gradient(to bottom, var(--color-in), var(--color-out));
     background-position-y: 100%;
     animation: gradient calc(4 * var(--area-duration)) linear infinite forwards var(--run);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-rows: 1ch repeat(3, 1fr);
     grid-template-areas:
+      "header header header"
       ". in ."
       "hold-out . hold-in"
       ". out .";
@@ -58,10 +67,16 @@
   }
 
   .area {
-    color: #eee;
+    color: var(--text-color);
     opacity: var(--area-inactive-opacity);
     font-family: 'Tahoma';
     text-transform: uppercase;
+  }
+
+  .area--header {
+    grid-area: header;
+    opacity: 50%;
+    justify-self: end;
   }
 
   .area--in {
@@ -108,6 +123,9 @@
 </style>
 
 <body>
+  <div class="area area--header">
+      <a href="https://github.com/justintout/box-breath/">github</a>
+  </div>
   <div class="area area--in">
     <h1>in</h1>
   </div>
