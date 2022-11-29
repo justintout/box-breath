@@ -22,10 +22,14 @@
 
   * {
     margin: 0;
+    user-select: none;
+    -moz-user-select: none;
+    cursor: default;
   }
 
-  a {
+  a, summary {
       color: var(--color-text);
+      cursor: pointer;
   }
 
   html {
@@ -48,7 +52,8 @@
       "header header header"
       ". in ."
       "hold-out . hold-in"
-      ". out .";
+      ". out ."
+      "footer footer footer";
     justify-items: center;
     align-items: center;
     background-repeat: no-repeat;
@@ -68,6 +73,7 @@
 
   .area {
     color: var(--color-text);
+    text-shadow: var(--color-text);
     opacity: var(--area-inactive-opacity);
     font-family: 'Tahoma';
     text-transform: uppercase;
@@ -81,8 +87,18 @@
     padding-top: var(--header-padding);
   }
 
-  .area--header > * {
+  .area--header > *,
+  .area--footer > * {
     margin-inline: 1ch;
+  }
+
+  .area--footer {
+    grid-area: footer;
+    opacity: 25%;
+    justify-self: end;
+    display: flex;
+    padding-bottom: var(--header-padding);
+    margin-bottom: 1ch;
   }
 
   .menu {
@@ -148,7 +164,7 @@
   <div class="area area--header">
       <details>
         <summary>settings</summary>
-        <div class="menu">
+        <div id="settings" class="menu">
           <noscript>Sorry, settings require JS.</noscript>
           <ul>
             <li>bg colors: <input type="color" name="color-in" id="color-in"><input type="color" name="color-out" id="color-out"></li>
@@ -172,6 +188,9 @@
   <div class="area area--hold-out">
     <h1>hold</h1>
   </div>
+  <div class="area area--footer">
+    made for my beautiful wife
+  </div>
 </body>
 
 <script>
@@ -182,6 +201,7 @@
   const colorTextID = '#color-text';
   const durationID = "#duration";
   const defaultsID = "#defaults";
+  const settingsID = "#settings";
   const colorInProp = '--color-in';
   const colorOutProp = '--color-out';
   const colorTextProp = '--color-text';
@@ -198,14 +218,16 @@
     {elem: document.querySelector(durationID), prop: durationProp}
   ][i];
   const durationInput = () => document.querySelector(durationID);
-  const defaultsButton = () => document.querySelector(defaultsID)
+  const defaultsButton = () => document.querySelector(defaultsID);
+  const settingsElem = () => document.querySelector(settingsID);
   const getStoredProp = (prop) => localStorage.getItem(prop);
   const getCurrentProp = (prop) => document.documentElement.style.getPropertyValue(prop);
   const getDefaultProp = (prop) => Array.from(document.styleSheets.item(0).cssRules).filter((r) => r.selectorText === ':root')[0].style.getPropertyValue(prop).trim();
   const setProp = (prop, value) => document.documentElement.style.setProperty(prop, value);
   const saveProp = (prop, value) => localStorage.setItem(prop, value);
   const clearProp = (prop) => localStorage.removeItem(prop);
-  function main() {
+
+  const initColors = () => {
     [...bgRGBMatches(), textRGBMatch()]
       .map((m, i) => {
         const ep = idxToElemProp(i);
@@ -217,6 +239,9 @@
           saveProp(ep.prop, ep.elem.value);
         });
     });
+  }
+
+  const initDuration = () => {
     const sd = getStoredProp(durationProp)
     durationInput().value = (sd ?? getDefaultProp(durationProp)).replace('s', '');
     if (sd) setProp(durationProp, sd);
@@ -224,6 +249,9 @@
       setProp(durationProp, durationInput().value + 's');
       saveProp(durationProp, durationInput().value + 's');
     });
+  }
+
+  const initInput = () => {
     defaultsButton().addEventListener('click', () => {
       [colorInProp, colorOutProp, colorTextProp, durationProp]
       .map((prop, i) => [prop, getDefaultProp(prop), idxToElemProp(i)])
@@ -233,7 +261,20 @@
         e[2].elem.value = e[0] !== durationProp ? e[1] : e[1].replace('s', '');
       });
     });
+    document.addEventListener('click', (e) => {
+      if (settingsElem().parentElement.open && !settingsElem().contains(e.target)) {
+        e.preventDefault();
+        settingsElem().parentElement.open = false;
+      }
+    })
   }
+
+  const main = () => {
+    initColors();
+    initDuration();
+    initInput();
+  }
+
   main();
 })();
 </script>
