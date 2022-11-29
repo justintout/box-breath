@@ -11,9 +11,9 @@
 <style>
   :root {
     --area-duration: 4s;
-    --color-in: slategray;
-    --color-out: rebeccapurple;
-    --color-text: #eee;
+    --color-in: #708090;
+    --color-out: #663399;
+    --color-text: #eeeeee;
     --area-active-opacity: 100%;
     --area-inactive-opacity: 20%;
     --run: running;
@@ -191,18 +191,20 @@
   const textRGBMatch = () => window.getComputedStyle(document.querySelector('h1')).color.match(r);
   const splitRGBMatch = (match) => match[0].split(', ');
   const rgbStringsToHex = (r,g,b) => '#' + [r,g,b].map((v) => parseInt(v).toString(16).padStart(2, '0')).join('');
-  const idxToElemProp = (i) => i == 0
-    ? {elem: document.querySelector(colorInID), prop: colorInProp}
-    : i == 1 
-      ? {elem: document.querySelector(colorOutID), prop: colorOutProp}
-      : {elem: document.querySelector(colorTextID), prop: colorTextProp};
+  const idxToElemProp = (i) => [
+    {elem: document.querySelector(colorInID), prop: colorInProp},
+    {elem: document.querySelector(colorOutID), prop: colorOutProp},
+    {elem: document.querySelector(colorTextID), prop: colorTextProp},
+    {elem: document.querySelector(durationID), prop: durationProp}
+  ][i];
   const durationInput = () => document.querySelector(durationID);
   const defaultsButton = () => document.querySelector(defaultsID)
   const getStoredProp = (prop) => localStorage.getItem(prop);
   const getCurrentProp = (prop) => document.documentElement.style.getPropertyValue(prop);
-  const getDefaultProp = (prop) => Array.from(document.styleSheets.item(0).cssRules).filter((r) => r.selectorText === ':root')[0].styleMap.get(prop);
+  const getDefaultProp = (prop) => Array.from(document.styleSheets.item(0).cssRules).filter((r) => r.selectorText === ':root')[0].style.getPropertyValue(prop).trim();
   const setProp = (prop, value) => document.documentElement.style.setProperty(prop, value);
   const saveProp = (prop, value) => localStorage.setItem(prop, value);
+  const clearProp = (prop) => localStorage.removeItem(prop);
   function main() {
     [...bgRGBMatches(), textRGBMatch()]
       .map((m, i) => {
@@ -215,17 +217,20 @@
           saveProp(ep.prop, ep.elem.value);
         });
     });
-    durationInput().value = (getStoredProp(durationProp) ?? getDefaultProp(durationProp)).replace('s', '');
+    const sd = getStoredProp(durationProp)
+    durationInput().value = (sd ?? getDefaultProp(durationProp)).replace('s', '');
+    if (sd) setProp(durationProp, sd);
     durationInput().addEventListener('change', () => {
       setProp(durationProp, durationInput().value + 's');
       saveProp(durationProp, durationInput().value + 's');
     });
     defaultsButton().addEventListener('click', () => {
       [colorInProp, colorOutProp, colorTextProp, durationProp]
-      .map((prop) => [prop, getDefaultProp(prop)])
+      .map((prop, i) => [prop, getDefaultProp(prop), idxToElemProp(i)])
       .forEach((e) => {
         setProp(e[0], e[1]);
-        saveProp(e[0], e[1]);
+        clearProp(e[0]);
+        e[2].elem.value = e[0] !== durationProp ? e[1] : e[1].replace('s', '');
       });
     });
   }
