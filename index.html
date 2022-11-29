@@ -167,9 +167,20 @@
         <div id="settings" class="menu">
           <noscript>Sorry, settings require JS.</noscript>
           <ul>
-            <li>bg colors: <input type="color" name="color-in" id="color-in"><input type="color" name="color-out" id="color-out"></li>
-            <li>text color: <input type="color" name="color-text" id="color-text"></li>
-            <li>duration: <input type="number" name="duration" id="duration" min="2" max="10"> sec</li>
+            <li>
+              <label for="color-in">inhale color: <input type="color" name="color-in" id="color-in"></label>
+            </li>
+            <li>
+              <label for="color-out">exhale color: <input type="color" name="color-out" id="color-out"></label>
+            </li>
+            <li>
+              <label for="color-text">text color: <input type="color" name="color-text" id="color-text"></label>
+            </li>
+            <li>
+              <label for="duration">
+                duration: <input type="number" name="duration" id="duration" min="2" max="10"> sec
+              </label>
+            </li>
             <button id="defaults">SET TO DEFAULTS</button>
           </ul>
         </div>
