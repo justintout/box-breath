@@ -10,13 +10,14 @@
 
 <style>
   :root {
-    --text-color: #eee;
     --area-duration: 4s;
     --color-in: slategray;
     --color-out: rebeccapurple;
+    --color-text: #eee;
     --area-active-opacity: 100%;
     --area-inactive-opacity: 20%;
     --run: running;
+    --header-padding: 5ch;
   }
 
   * {
@@ -24,7 +25,7 @@
   }
 
   a {
-      color: var(--text-color);
+      color: var(--color-text);
   }
 
   html {
@@ -32,14 +33,14 @@
   }
 
   body {
-    box-shadow: inset 0 0 10vmin black;
-    height: 100vh;
+    box-shadow: inset 0 0 10vmin #111;
+    height: calc(100vh + var(--header-padding));
     padding: 1ch;
     overflow: hidden;
-    background-size: 100% 300%;
+    background-size: 100% 400%;
     background-image: linear-gradient(to bottom, var(--color-in), var(--color-out));
     background-position-y: 100%;
-    animation: gradient calc(4 * var(--area-duration)) linear infinite forwards var(--run);
+    animation: gradient calc(4 * var(--area-duration)) ease infinite forwards var(--run);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: 1ch repeat(3, 1fr);
@@ -50,24 +51,23 @@
       ". out .";
     justify-items: center;
     align-items: center;
+    background-repeat: no-repeat;
   }
 
   @keyframes gradient {
     25% {
       background-position-y: 0%;
     }
-
     50% {
       background-position-y: 0%;
     }
-
     75% {
       background-position-y: 100%;
     }
   }
 
   .area {
-    color: var(--text-color);
+    color: var(--color-text);
     opacity: var(--area-inactive-opacity);
     font-family: 'Tahoma';
     text-transform: uppercase;
@@ -77,6 +77,21 @@
     grid-area: header;
     opacity: 50%;
     justify-self: end;
+    display: flex;
+    padding-top: var(--header-padding);
+  }
+
+  .area--header > * {
+    margin-inline: 1ch;
+  }
+
+  .menu {
+    position: absolute;
+    top: auto;
+    right: 1ch;
+    bottom: auto;
+    left: auto;
+    padding: 0;
   }
 
   .area--in {
@@ -120,10 +135,29 @@
       opacity: var(--area-inactive-opacity);
     }
   }
+
+  #duration {
+    width: 3em;
+  }
+  .seconds-label::after {
+    content: 'sec';
+  }
 </style>
 
 <body>
   <div class="area area--header">
+      <details>
+        <summary>settings</summary>
+        <div class="menu">
+          <noscript>Sorry, settings require JS.</noscript>
+          <ul>
+            <li>bg colors: <input type="color" name="color-in" id="color-in"><input type="color" name="color-out" id="color-out"></li>
+            <li>text color: <input type="color" name="color-text" id="color-text"></li>
+            <li>duration: <input type="number" name="duration" id="duration" min="2" max="10"> sec</li>
+            <button id="defaults">SET TO DEFAULTS</button>
+          </ul>
+        </div>
+      </details>
       <a href="https://github.com/justintout/box-breath/">github</a>
   </div>
   <div class="area area--in">
@@ -139,5 +173,64 @@
     <h1>hold</h1>
   </div>
 </body>
+
+<script>
+// i'm having fun with this one.
+(()=>{
+  const colorInID = '#color-in';
+  const colorOutID = '#color-out';
+  const colorTextID = '#color-text';
+  const durationID = "#duration";
+  const defaultsID = "#defaults";
+  const colorInProp = '--color-in';
+  const colorOutProp = '--color-out';
+  const colorTextProp = '--color-text';
+  const durationProp = '--area-duration';
+  const r = /\d+, \d+, \d+/g;
+  const bgRGBMatches = () => window.getComputedStyle(document.body).backgroundImage.matchAll(r);
+  const textRGBMatch = () => window.getComputedStyle(document.querySelector('h1')).color.match(r);
+  const splitRGBMatch = (match) => match[0].split(', ');
+  const rgbStringsToHex = (r,g,b) => '#' + [r,g,b].map((v) => parseInt(v).toString(16).padStart(2, '0')).join('');
+  const idxToElemProp = (i) => i == 0
+    ? {elem: document.querySelector(colorInID), prop: colorInProp}
+    : i == 1 
+      ? {elem: document.querySelector(colorOutID), prop: colorOutProp}
+      : {elem: document.querySelector(colorTextID), prop: colorTextProp};
+  const durationInput = () => document.querySelector(durationID);
+  const defaultsButton = () => document.querySelector(defaultsID)
+  const getStoredProp = (prop) => localStorage.getItem(prop);
+  const getCurrentProp = (prop) => document.documentElement.style.getPropertyValue(prop);
+  const getDefaultProp = (prop) => Array.from(document.styleSheets.item(0).cssRules).filter((r) => r.selectorText === ':root')[0].styleMap.get(prop);
+  const setProp = (prop, value) => document.documentElement.style.setProperty(prop, value);
+  const saveProp = (prop, value) => localStorage.setItem(prop, value);
+  function main() {
+    [...bgRGBMatches(), textRGBMatch()]
+      .map((m, i) => {
+        const ep = idxToElemProp(i);
+        const stored = getStoredProp(ep.prop);
+        ep.elem.value = stored ? stored : rgbStringsToHex(...splitRGBMatch(m));
+        if (stored) setProp(ep.prop, stored);
+        ep.elem.addEventListener('change', () => {
+          setProp(ep.prop, ep.elem.value);
+          saveProp(ep.prop, ep.elem.value);
+        });
+    });
+    durationInput().value = (getStoredProp(durationProp) ?? getDefaultProp(durationProp)).replace('s', '');
+    durationInput().addEventListener('change', () => {
+      setProp(durationProp, durationInput().value + 's');
+      saveProp(durationProp, durationInput().value + 's');
+    });
+    defaultsButton().addEventListener('click', () => {
+      [colorInProp, colorOutProp, colorTextProp, durationProp]
+      .map((prop) => [prop, getDefaultProp(prop)])
+      .forEach((e) => {
+        setProp(e[0], e[1]);
+        saveProp(e[0], e[1]);
+      });
+    });
+  }
+  main();
+})();
+</script>
 
 </html>
